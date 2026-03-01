@@ -117,6 +117,15 @@ open_ports() {
     ss -tuln
 }
 
+pihole_status() {
+    if command -v pihole &>/dev/null; then
+        echo "== Pi-hole Status =="
+        pihole status
+    else
+        echo "Pi-hole is not installed on this system."
+    fi
+}
+
 network_info_menu() {
     while true; do
         echo
@@ -124,16 +133,18 @@ network_info_menu() {
         echo "1. Show IP address"
         echo "2. Ping test"
         echo "3. Show open ports"
-        echo "4. Back to main menu"
+        echo "4. Pi-hole status"
+        echo "5. Back to main menu"
         echo
-        read -rp "Choose an option [1-4]: " choice
+        read -rp "Choose an option [1-5]: " choice
         echo
         case "$choice" in
             1) show_ip ;;
             2) ping_test ;;
             3) open_ports ;;
-            4) return ;;
-            *) echo "Invalid option. Please enter 1–4." ;;
+            4) pihole_status ;;
+            5) return ;;
+            *) echo "Invalid option. Please enter 1–5." ;;
         esac
         pause
     done

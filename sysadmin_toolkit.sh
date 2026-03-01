@@ -54,6 +54,26 @@ add_user() {
     fi
 }
 
+delete_user() {
+    read -rp "Enter username to delete: " username
+    if ! grep -q "^$username:" /etc/passwd; then
+        echo "User '$username' does not exist."
+        return 1
+    fi
+    read -rp "Are you sure you want to delete '$username'? [y/N]: " confirm
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        sudo userdel -r "$username"
+        if [ $? -eq 0 ]; then
+            echo "User '$username' and their home directory have been deleted."
+        else
+            echo "Failed to delete user '$username'."
+            return 1
+        fi
+    else
+        echo "Cancelled."
+    fi
+}
+
 user_management_menu() {
     while true; do
         echo
@@ -61,16 +81,18 @@ user_management_menu() {
         echo "1. List regular users"
         echo "2. Check if user exists"
         echo "3. Add a new user"
-        echo "4. Back to main menu"
+        echo "4. Delete a user"
+        echo "5. Back to main menu"
         echo
-        read -rp "Choose an option [1-4]: " choice
+        read -rp "Choose an option [1-5]: " choice
         echo
         case "$choice" in
             1) list_users ;;
             2) check_user ;;
             3) add_user ;;
-            4) return ;;
-            *) echo "Invalid option. Please enter 1–4." ;;
+            4) delete_user ;;
+            5) return ;;
+            *) echo "Invalid option. Please enter 1–5." ;;
         esac
         pause
     done

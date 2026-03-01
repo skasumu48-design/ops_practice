@@ -150,7 +150,16 @@ security_check() {
     echo
 
     echo "== Last 10 Logins =="
-    last -n 10
+    if command -v last &>/dev/null; then
+        last -n 10
+    else
+        journalctl -u ssh --no-pager 2>/dev/null \
+            | grep -i "accepted\|session opened" \
+            | tail -n 10
+        if [ $? -ne 0 ]; then
+            echo "No login history available."
+        fi
+    fi
     echo
 
     echo "== Failed Login Attempts =="
@@ -159,8 +168,15 @@ security_check() {
         if ! grep -q "Failed password" /var/log/auth.log; then
             echo "No failed login attempts found."
         fi
+    elif command -v journalctl &>/dev/null; then
+        journalctl -u ssh --no-pager 2>/dev/null \
+            | grep -i "failed" \
+            | tail -n 20
+        if ! journalctl -u ssh --no-pager 2>/dev/null | grep -qi "failed"; then
+            echo "No failed login attempts found."
+        fi
     else
-        echo "Cannot read /var/log/auth.log (try running with sudo)."
+        echo "No method available to read login attempts."
     fi
 }
 
